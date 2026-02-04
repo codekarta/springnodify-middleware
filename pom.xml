@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.0.2</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.springnodify</groupId>
+	<artifactId>middleware</artifactId>
+	<version>1.0.0</version>
+	<name>Spring Nodify Middleware</name>
+	<description>Node.js/Express style middleware for Spring Boot applications.</description>
+	<url>https://github.com/springnodify/middleware</url>
+
+	<licenses>
+		<license>
+			<name>The Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>manishbansal</id>
+			<name>Manish Bansal</name>
+			<email>manishbansal.dev@gmail.com</email>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git://github.com/springnodify/middleware.git</connection>
+		<developerConnection>scm:git:ssh://github.com:springnodify/middleware.git</developerConnection>
+		<url>https://github.com/springnodify/middleware/tree/main</url>
+	</scm>
+
+	<properties>
+		<java.version>21</java.version>
+		<maven-central.version>0.7.0</maven-central.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.3.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.6.3</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>${maven-central.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>central</publishingServerId>
+					<autoPublish>true</autoPublish>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
