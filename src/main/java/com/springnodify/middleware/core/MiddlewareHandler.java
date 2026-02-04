@@ -28,6 +28,10 @@ public class MiddlewareHandler {
         return Arrays.stream(patterns).anyMatch(p -> matcher.match(p, path));
     }
 
+    boolean doesNotMatch(String path) {
+        return !matches(path);
+    }
+
     boolean run(HttpServletRequest req, HttpServletResponse res) throws Exception {
         return (boolean) method.invoke(bean, req, res);
     }

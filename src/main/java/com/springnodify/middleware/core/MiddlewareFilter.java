@@ -4,10 +4,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
 
 @Component
 public class MiddlewareFilter extends OncePerRequestFilter {
@@ -21,8 +20,8 @@ public class MiddlewareFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(
             HttpServletRequest req,
-            HttpServletResponse res,
-            FilterChain chain) throws IOException, ServletException {
+            @NonNull HttpServletResponse res,
+            @NonNull FilterChain chain) throws ServletException {
 
         String path = req.getRequestURI();
 
@@ -33,7 +32,7 @@ public class MiddlewareFilter extends OncePerRequestFilter {
             for (MiddlewareHandler h : registry.getHandlers()) {
                 if (h.type != MiddlewareType.BEFORE)
                     continue;
-                if (!h.matches(path))
+                if (h.doesNotMatch(path))
                     continue;
 
                 boolean proceed = h.run(req, res);
@@ -51,7 +50,7 @@ public class MiddlewareFilter extends OncePerRequestFilter {
             for (MiddlewareHandler h : registry.getHandlers()) {
                 if (h.type != MiddlewareType.AFTER)
                     continue;
-                if (!h.matches(path))
+                if (h.doesNotMatch(path))
                     continue;
 
                 h.run(req, res); // Return value ignored for AFTER middleware
