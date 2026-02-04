@@ -13,7 +13,7 @@
 	<version>1.0.0</version>
 	<name>Spring Nodify Middleware</name>
 	<description>Node.js/Express style middleware for Spring Boot applications.</description>
-	<url>https://github.com/springnodify/middleware</url>
+	<url>https://github.com/codekarta/springnodify-middleware</url>
 
 	<licenses>
 		<license>
@@ -31,9 +31,9 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:git://github.com/springnodify/middleware.git</connection>
-		<developerConnection>scm:git:ssh://github.com:springnodify/middleware.git</developerConnection>
-		<url>https://github.com/springnodify/middleware/tree/main</url>
+		<connection>scm:git:git://github.com/codekarta/springnodify-middleware.git</connection>
+		<developerConnection>scm:git:ssh://github.com:codekarta/springnodify-middleware.git</developerConnection>
+		<url>https://github.com/codekarta/springnodify-middleware/tree/main</url>
 	</scm>
 
 	<properties>
