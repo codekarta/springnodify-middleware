@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.github.codekarta</groupId>
 	<artifactId>springnodify-middleware</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>Spring Nodify Middleware</name>
 	<description>Node.js/Express style middleware for Spring Boot applications.</description>
 	<url>https://github.com/codekarta/springnodify-middleware</url>
