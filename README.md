@@ -1,6 +1,6 @@
 # Spring Nodify Middleware
 
-[![Maven Central](https://img.shields.io/maven-central/v/com.springnodify/middleware.svg)](https://search.maven.org/artifact/com.springnodify/middleware)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.codekarta/springnodify-middleware.svg)](https://search.maven.org/artifact/io.github.codekarta/springnodify-middleware)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Spring Nodify Middleware** is a lightweight, non-intrusive library for Spring Boot that brings Node.js/Express-style middleware patterns to Java applications. It allows you to define request/response processing logic using simple annotations and a familiar functional approach.
@@ -21,8 +21,8 @@ Add the following dependency to your `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>com.springnodify</groupId>
-    <artifactId>middleware</artifactId>
+    <groupId>io.github.codekarta</groupId>
+    <artifactId>springnodify-middleware</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -33,7 +33,7 @@ Add the following dependency to your `pom.xml`:
 ### Gradle
 
 ```groovy
-implementation 'com.springnodify:middleware:1.0.0'
+implementation 'io.github.codekarta:springnodify-middleware:1.0.0'
 ```
 
 ## How to Use
@@ -75,7 +75,7 @@ public class AppMiddlewares {
 
 ### 2. Registering the Filter
 
-The library automatically registers its filter if you are using Spring Boot's auto-configuration. Ensure your application scans the `com.springnodify.middleware` package or that the library is correctly imported.
+The library automatically registers its filter if you are using Spring Boot's auto-configuration. Ensure your application scans the `io.github.codekarta.springnodify.middleware.core` package or that the library is correctly imported.
 
 ## Compatibility
 
