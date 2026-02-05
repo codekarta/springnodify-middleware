@@ -29,37 +29,80 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: Verify Maven configuration
+      - name: Verify Maven configuration was created
         run: |
-          echo "Verifying Maven settings.xml configuration..."
+          echo "Checking that setup-java action created settings.xml..."
           if [ -f ~/.m2/settings.xml ]; then
-            echo "✓ Maven settings.xml exists"
+            echo "✓ Maven settings.xml was created by setup-java action"
+            # Verify server ID is "central" (without printing credentials)
             if grep -q "<id>central</id>" ~/.m2/settings.xml; then
-              echo "✓ Central server configuration found with correct id"
-              # Verify username is set (but don't print it)
-              if grep -q "<username>" ~/.m2/settings.xml && ! grep -q "<username></username>" ~/.m2/settings.xml; then
-                echo "✓ Username is configured"
-              else
-                echo "✗ ERROR: Username is missing or empty"
-                exit 1
-              fi
-              # Verify password is set (but don't print it)
-              if grep -q "<password>" ~/.m2/settings.xml && ! grep -q "<password></password>" ~/.m2/settings.xml; then
-                echo "✓ Password is configured"
-              else
-                echo "✗ ERROR: Password is missing or empty"
-                exit 1
-              fi
+              echo "✓ Server ID is correctly set to 'central'"
             else
-              echo "✗ ERROR: Central server configuration not found or incorrect id"
-              echo "Expected: <id>central</id>"
-              # Only show server id, not credentials
-              grep "<id>" ~/.m2/settings.xml | head -1 || echo "No server id found"
+              echo "✗ ERROR: Server ID is not 'central'"
+              echo "Found:"
+              grep "<id>" ~/.m2/settings.xml | head -1
+              exit 1
+            fi
+            # Verify credentials are present (without printing them)
+            if grep -q "<username>" ~/.m2/settings.xml && grep -q "<password>" ~/.m2/settings.xml; then
+              echo "✓ Credentials are configured"
+            else
+              echo "✗ ERROR: Credentials are missing"
               exit 1
             fi
           else
-            echo "✗ ERROR: Maven settings.xml not found"
+            echo "✗ ERROR: Maven settings.xml was not created"
             exit 1
+          fi
+
+      - name: Test Portal Token Authentication
+        run: |
+          echo "Testing Portal User Token authentication..."
+          echo "Using credentials from GitHub secrets (via settings.xml)..."
+          
+          # Extract credentials from settings.xml (safely, without printing)
+          USERNAME=$(grep -o "<username>[^<]*</username>" ~/.m2/settings.xml | sed 's/<[^>]*>//g' | head -1)
+          PASSWORD=$(grep -o "<password>[^<]*</password>" ~/.m2/settings.xml | sed 's/<[^>]*>//g' | head -1)
+          
+          if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+            echo "✗ ERROR: Could not extract credentials from settings.xml"
+            exit 1
+          fi
+          
+          echo "✓ Credentials extracted (username length: ${#USERNAME}, password length: ${#PASSWORD})"
+          
+          # Test authentication with Central Portal API
+          # Portal API uses Bearer token with base64(username:password)
+          AUTH_HEADER=$(echo -n "${USERNAME}:${PASSWORD}" | base64)
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
+            -H "Authorization: Bearer ${AUTH_HEADER}" \
+            "https://central.sonatype.com/api/v1/publisher/user" 2>&1)
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✓ Portal User Token authentication successful"
+          elif [ "$HTTP_CODE" = "401" ]; then
+            echo "✗ ERROR: Portal User Token authentication failed (401 Unauthorized)"
+            echo ""
+            echo "This means your GitHub secrets CENTRAL_USERNAME and CENTRAL_PASSWORD"
+            echo "do not match a valid Portal User Token."
+            echo ""
+            echo "To fix:"
+            echo "1. Go to https://central.sonatype.com/usertoken"
+            echo "2. Find your token (or create a new one)"
+            echo "3. Copy the username and password shown when you generate/view the token"
+            echo "4. Update GitHub secrets:"
+            echo "   - CENTRAL_USERNAME = token username"
+            echo "   - CENTRAL_PASSWORD = token password"
+            echo ""
+            echo "Note: The password is shown only once when you generate the token."
+            echo "If you don't have it, you'll need to regenerate the token."
+            exit 1
+          else
+            echo "⚠ Authentication test returned HTTP $HTTP_CODE"
+            echo "Response preview: ${BODY:0:200}..."
           fi
 
       - name: Publish to Maven Central
@@ -67,9 +110,36 @@ jobs:
           # Run Maven with password masking to prevent secrets from appearing in logs
           # Using set -o pipefail to preserve exit codes
           set -o pipefail
-          mvn --batch-mode clean deploy -DskipTests -Dgpg.passphrase=$GPG_PASSPHRASE 2>&1 | \
+          # Capture full output first, then mask and display
+          OUTPUT=$(mvn --batch-mode clean deploy -DskipTests -Dgpg.passphrase=$GPG_PASSPHRASE 2>&1)
+          EXIT_CODE=$?
+          
+          # Mask sensitive information before displaying
+          echo "$OUTPUT" | \
             sed -E 's/(password|passphrase|PASSWORD|PASSPHRASE)[=:][^[:space:]]*/[REDACTED]/gi' | \
             sed -E 's/<password>[^<]*<\/password>/<password>[REDACTED]<\/password>/gi' | \
-            sed -E 's/(Bearer|bearer)[[:space:]]+[A-Za-z0-9+/=]+/[REDACTED]/g'
+            sed -E 's/(Bearer|bearer)[[:space:]]+[A-Za-z0-9+/=]+/[REDACTED]/g' | \
+            sed -E 's/Authorization:[^[:space:]]*/Authorization: [REDACTED]/gi'
+          
+          # If there's a 401 error, provide helpful debugging info
+          if [ $EXIT_CODE -ne 0 ] && echo "$OUTPUT" | grep -q "401\|Unauthorized"; then
+            echo ""
+            echo "=== 401 Authentication Error Debugging ==="
+            echo "The plugin is receiving a 401 Unauthorized response."
+            echo ""
+            echo "Common causes:"
+            echo "1. Portal User Token password is incorrect or still a placeholder"
+            echo "2. Token credentials don't match what's in GitHub secrets"
+            echo "3. Token was revoked or regenerated but secrets weren't updated"
+            echo ""
+            echo "To fix:"
+            echo "1. Go to https://central.sonatype.com/usertoken"
+            echo "2. Verify or regenerate your Portal User Token"
+            echo "3. Copy BOTH the username AND password"
+            echo "4. Update GitHub secrets CENTRAL_USERNAME and CENTRAL_PASSWORD"
+            echo "5. Ensure CENTRAL_PASSWORD is the actual token password, not 'my password string here'"
+          fi
+          
+          exit $EXIT_CODE
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

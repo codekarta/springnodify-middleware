@@ -5,11 +5,13 @@
           https://maven.apache.org/xsd/settings-1.2.0.xsd">
   <servers>
     <server>
-      <!-- IMPORTANT: The id must be exactly "central" (not a variable) -->
+      <!-- CRITICAL: The id MUST be exactly "central" (literal string, NOT a variable) -->
+      <!-- ❌ WRONG: <id>${server}</id> -->
+      <!-- ✅ CORRECT: <id>central</id> -->
       <id>central</id>
-      <!-- Replace with your Portal User Token username -->
+      <!-- Your Portal User Token username -->
       <username>2joR5w</username>
-      <!-- Replace with your actual Portal User Token password (not a placeholder) -->
+      <!-- Your Portal User Token password (replace with your actual password) -->
       <password>YOUR_ACTUAL_TOKEN_PASSWORD_HERE</password>
     </server>
   </servers>
