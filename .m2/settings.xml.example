@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0
+          https://maven.apache.org/xsd/settings-1.2.0.xsd">
+  <servers>
+    <server>
+      <!-- IMPORTANT: The id must be exactly "central" (not a variable) -->
+      <id>central</id>
+      <!-- Replace with your Portal User Token username -->
+      <username>2joR5w</username>
+      <!-- Replace with your actual Portal User Token password (not a placeholder) -->
+      <password>YOUR_ACTUAL_TOKEN_PASSWORD_HERE</password>
+    </server>
+  </servers>
+</settings>

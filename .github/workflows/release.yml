@@ -1,5 +1,10 @@
 name: Release to Maven Central
 
+# IMPORTANT: This workflow requires Portal User Tokens from Maven Central.
+# If you get a 401 error, verify that CENTRAL_USERNAME and CENTRAL_PASSWORD
+# are Portal User Tokens (not regular account credentials).
+# See MAVEN_CENTRAL_PUBLISHING.md for details.
+
 on:
   push:
     tags:
@@ -24,9 +29,47 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
+      - name: Verify Maven configuration
+        run: |
+          echo "Verifying Maven settings.xml configuration..."
+          if [ -f ~/.m2/settings.xml ]; then
+            echo "✓ Maven settings.xml exists"
+            if grep -q "<id>central</id>" ~/.m2/settings.xml; then
+              echo "✓ Central server configuration found with correct id"
+              # Verify username is set (but don't print it)
+              if grep -q "<username>" ~/.m2/settings.xml && ! grep -q "<username></username>" ~/.m2/settings.xml; then
+                echo "✓ Username is configured"
+              else
+                echo "✗ ERROR: Username is missing or empty"
+                exit 1
+              fi
+              # Verify password is set (but don't print it)
+              if grep -q "<password>" ~/.m2/settings.xml && ! grep -q "<password></password>" ~/.m2/settings.xml; then
+                echo "✓ Password is configured"
+              else
+                echo "✗ ERROR: Password is missing or empty"
+                exit 1
+              fi
+            else
+              echo "✗ ERROR: Central server configuration not found or incorrect id"
+              echo "Expected: <id>central</id>"
+              # Only show server id, not credentials
+              grep "<id>" ~/.m2/settings.xml | head -1 || echo "No server id found"
+              exit 1
+            fi
+          else
+            echo "✗ ERROR: Maven settings.xml not found"
+            exit 1
+          fi
+
       - name: Publish to Maven Central
-        run: mvn --batch-mode clean deploy -DskipTests -Dgpg.passphrase=$GPG_PASSPHRASE
+        run: |
+          # Run Maven with password masking to prevent secrets from appearing in logs
+          # Using set -o pipefail to preserve exit codes
+          set -o pipefail
+          mvn --batch-mode clean deploy -DskipTests -Dgpg.passphrase=$GPG_PASSPHRASE 2>&1 | \
+            sed -E 's/(password|passphrase|PASSWORD|PASSPHRASE)[=:][^[:space:]]*/[REDACTED]/gi' | \
+            sed -E 's/<password>[^<]*<\/password>/<password>[REDACTED]<\/password>/gi' | \
+            sed -E 's/(Bearer|bearer)[[:space:]]+[A-Za-z0-9+/=]+/[REDACTED]/g'
         env:
-          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
-          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
