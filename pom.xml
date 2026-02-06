@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.github.codekarta</groupId>
 	<artifactId>springnodify-middleware</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<name>Spring Nodify Middleware</name>
 	<description>Node.js/Express style middleware for Spring Boot applications.</description>
 	<url>https://github.com/codekarta/springnodify-middleware</url>
@@ -46,6 +46,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>

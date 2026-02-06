@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class AppMiddlewares {
 
     @Middleware(order = 1)
-    public boolean logging(HttpServletRequest req, HttpServletResponse res) {
+    public boolean logging(HttpServletRequest req) {
         System.out.println(req.getMethod() + " " + req.getRequestURI());
         return true;
     }
@@ -34,8 +34,14 @@ public class AppMiddlewares {
     }
 
     @Middleware(order = 1, type = MiddlewareType.AFTER)
-    public boolean logStatus(HttpServletRequest req, HttpServletResponse res) {
+    public boolean logStatus(HttpServletResponse res) {
         System.out.println("Response Status: " + res.getStatus());
+        return true;
+    }
+
+    @Middleware(url = "/api/public/**", order = 0)
+    public boolean alwaysAllow() {
+        // Example middleware with no parameters - always allows the request
         return true;
     }
 }

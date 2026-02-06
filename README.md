@@ -12,6 +12,7 @@
 - 🖇️ **Ordered Execution**: Easily control the execution order of your middlewares.
 - 🛣️ **Path Matching**: Support for Ant-style path patterns (e.g., `/api/**`).
 - 🔄 **Before/After Hooks**: Run logic before or after the main controller execution.
+- ✨ **Optional Parameters**: Use only the parameters you need - `HttpServletRequest` and `HttpServletResponse` are optional.
 
 ## Installation
 
@@ -40,20 +41,27 @@ implementation 'io.github.codekarta:springnodify-middleware:1.0.0'
 
 ### 1. Define Middleware
 
-Create a component and annotate your methods with `@Middleware`. Methods should accept `HttpServletRequest` and `HttpServletResponse` and return a `boolean`.
+Create a component and annotate your methods with `@Middleware`. Methods should return a `boolean` and can optionally accept `HttpServletRequest` and/or `HttpServletResponse` parameters.
+
+**Parameter Options:**
+- No parameters: `boolean method()`
+- Only request: `boolean method(HttpServletRequest req)`
+- Only response: `boolean method(HttpServletResponse res)`
+- Both parameters: `boolean method(HttpServletRequest req, HttpServletResponse res)`
+- Both in any order: `boolean method(HttpServletResponse res, HttpServletRequest req)`
 
 ```java
 @Component
 public class AppMiddlewares {
 
-    // Runs for all requests by default
+    // BEFORE middleware - only needs request parameter
     @Middleware(order = 1)
-    public boolean logging(HttpServletRequest req, HttpServletResponse res) {
+    public boolean logging(HttpServletRequest req) {
         System.out.println("Processing: " + req.getMethod() + " " + req.getRequestURI());
         return true; // Continue to next middleware/controller
     }
 
-    // Runs only for private API paths
+    // BEFORE middleware - needs both parameters
     @Middleware(url = "/api/private/**", order = 2)
     public boolean auth(HttpServletRequest req, HttpServletResponse res) {
         String apiKey = req.getHeader("X-API-KEY");
@@ -64,16 +72,35 @@ public class AppMiddlewares {
         return false; // Stop execution and return 401
     }
 
-    // Runs after the controller finishes
+    // BEFORE middleware - no parameters needed
+    @Middleware(url = "/api/public/**", order = 0)
+    public boolean alwaysAllow() {
+        // Simple middleware that always allows the request
+        return true;
+    }
+
+    // AFTER middleware - only needs response parameter
     @Middleware(order = 1, type = MiddlewareType.AFTER)
-    public boolean postProcess(HttpServletRequest req, HttpServletResponse res) {
+    public boolean logStatus(HttpServletResponse res) {
         System.out.println("Response Status: " + res.getStatus());
         return true;
     }
 }
 ```
 
-### 2. Registering the Filter
+### 2. Parameter Selection Guidelines
+
+Choose parameters based on your middleware's needs:
+
+- **BEFORE middleware** typically only needs `HttpServletRequest` for reading request data
+- **AFTER middleware** typically only needs `HttpServletResponse` for reading response data
+- Use both parameters when you need to read from request and write to response
+- Use no parameters for simple logic that doesn't need request/response access
+
+> [!TIP]
+> The library automatically matches parameters by type, so you can use them in any order. Only `HttpServletRequest` and `HttpServletResponse` are supported as parameter types.
+
+### 3. Registering the Filter
 
 The library automatically registers its filter if you are using Spring Boot's auto-configuration. Ensure your application scans the `io.github.codekarta.springnodify.middleware.core` package or that the library is correctly imported.
 

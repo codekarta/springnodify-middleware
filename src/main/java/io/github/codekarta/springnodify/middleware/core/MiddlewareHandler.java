@@ -34,6 +34,24 @@ public class MiddlewareHandler {
     }
 
     boolean run(HttpServletRequest req, HttpServletResponse res) throws Exception {
-        return (boolean) method.invoke(bean, req, res);
+        Class<?>[] paramTypes = method.getParameterTypes();
+        Object[] args = new Object[paramTypes.length];
+        
+        for (int i = 0; i < paramTypes.length; i++) {
+            Class<?> paramType = paramTypes[i];
+            
+            if (paramType == HttpServletRequest.class) {
+                args[i] = req;
+            } else if (paramType == HttpServletResponse.class) {
+                args[i] = res;
+            } else {
+                throw new IllegalArgumentException(
+                    String.format("Middleware method '%s' has unsupported parameter type '%s'. " +
+                        "Only HttpServletRequest and HttpServletResponse are allowed.",
+                        method.getName(), paramType.getName()));
+            }
+        }
+        
+        return (boolean) method.invoke(bean, args);
     }
 }

@@ -16,4 +16,11 @@ public class SampleController {
     public String privateMethodSample(){
         return "you will not see this output but 401 error";
     }
+
+    @GetMapping("/api/public/info")
+    public String publicInfo(){
+        // This endpoint demonstrates middleware with no parameters
+        // The alwaysAllow() middleware runs before this endpoint
+        return "Public information - accessible to all";
+    }
 }
